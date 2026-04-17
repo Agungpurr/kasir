@@ -71,8 +71,9 @@ class ProductController extends Controller
     // ─────────────────────────────────────────
     // Form edit produk
     // ─────────────────────────────────────────
-    public function edit(Product $product)
+     public function edit($id)
     {
+        $product = Product::findOrFail($id);
         $categories = Category::orderBy('name')->get();
         return view('products.edit', compact('product', 'categories'));
     }
@@ -80,11 +81,13 @@ class ProductController extends Controller
     // ─────────────────────────────────────────
     // Update produk
     // ─────────────────────────────────────────
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $id)
     {
+        $product = Product::findOrFail($id);
+        
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'name'        => 'required|string|max:255|unique:products,name,' . $product->id,
+            'name'        => 'required|string|max:255|unique:products,name,' . $id,
             'price_buy'   => 'required|integer|min:0',
             'price_sell'  => 'required|integer|min:0|gte:price_buy',
             'stock'       => 'required|integer|min:0',
@@ -96,15 +99,16 @@ class ProductController extends Controller
         $product->update($validated);
 
         return redirect()->route('products.index')
-            ->with('success', 'Produk berhasil diperbarui.');
+            ->with('success', 'Produk "'.$product->name.'" berhasil diperbarui.');
     }
 
     // ─────────────────────────────────────────
     // Hapus produk
     // ─────────────────────────────────────────
-    public function destroy(Product $product)
+    public function destroy($id)
     {
-        // Cek apakah produk pernah ada di transaksi
+        $product = Product::findOrFail($id);
+        
         if ($product->transactionDetails()->exists()) {
             return redirect()->route('products.index')
                 ->with('error', 'Produk tidak bisa dihapus karena sudah ada di riwayat transaksi.');

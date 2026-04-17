@@ -35,7 +35,14 @@
             </div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
-                    <thead><tr><th>#</th><th>Nama Kategori</th><th>Jumlah Produk</th><th>Aksi</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nama Kategori</th>
+                            <th>Jumlah Produk</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         @forelse($categories as $i => $cat)
                         <tr>
@@ -48,9 +55,12 @@
                                         data-bs-toggle="modal" data-bs-target="#editModal{{ $cat->id }}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <form action="{{ route('categories.destroy', $cat) }}" method="POST" class="d-inline"
+                                
+                                {{-- ⭐ PERBAIKAN 1: FORM DELETE ⭐ --}}
+                                <form action="{{ url('/kategori/' . $cat->id) }}" method="POST" class="d-inline"
                                       onsubmit="return confirm('Hapus kategori {{ $cat->name }}?')">
-                                    @csrf @method('DELETE')
+                                    @csrf 
+                                    @method('DELETE')
                                     <button type="submit" class="btn btn-xs btn-outline-danger" style="font-size:11px;padding:3px 8px">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -67,8 +77,10 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <form action="{{ route('categories.update', $cat) }}" method="POST">
-                                            @csrf @method('PUT')
+                                        {{-- ⭐ PERBAIKAN 2: FORM EDIT ⭐ --}}
+                                        <form action="{{ url('/kategori/' . $cat->id) }}" method="POST">
+                                            @csrf 
+                                            @method('PUT')
                                             <div class="mb-3">
                                                 <input type="text" name="name" class="form-control"
                                                        value="{{ $cat->name }}" required>
@@ -80,7 +92,9 @@
                             </div>
                         </div>
                         @empty
-                        <tr><td colspan="4" class="text-center text-muted py-4">Belum ada kategori</td></tr>
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">Belum ada kategori</td>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>

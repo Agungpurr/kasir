@@ -16,8 +16,10 @@
 
         <div class="card">
             <div class="card-body p-4">
-                <form action="{{ route('products.update', $product) }}" method="POST">
-                    @csrf @method('PUT')
+                {{-- PERHATIKAN: action menggunakan url() helper dengan ID --}}
+                <form action="{{ url('/produk/' . $product->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
                     @include('products._form')
                     <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary px-4">
