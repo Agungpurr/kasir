@@ -11,7 +11,14 @@
 .cat-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .cat-pill { padding: 5px 14px; border-radius: 20px; border: 1.5px solid #e0e0e0; font-size: 12px; cursor: pointer; background: #fff; color: #555; transition: all .15s; }
 .cat-pill.active { background: var(--primary); border-color: var(--primary); color: #fff; }
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; overflow-y: auto; flex: 1; padding-right: 4px; }
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 200px));
+    gap: 12px;
+    justify-content: start;
+    overflow-y: auto;
+    flex: 1;
+}
 .p-card { background: #fff; border: 1.5px solid #e9ecef; border-radius: 10px; padding: 12px; cursor: pointer; transition: all .15s; position: relative; }
 .p-card:hover { border-color: var(--primary); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(29,158,117,.12); }
 .p-card.sold-out { opacity: .5; cursor: not-allowed; pointer-events: none; }
@@ -20,6 +27,24 @@
 .p-price { font-size: 12px; color: var(--primary); font-weight: 600; }
 .p-stock { font-size: 10px; color: #9ca3af; margin-top: 2px; }
 .stock-pip { position: absolute; top: 7px; right: 7px; font-size: 9px; padding: 2px 6px; border-radius: 20px; }
+
+/* Payment Method */
+.pay-method { display: flex; gap: 8px; margin-bottom: 12px; }
+.pay-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1.5px solid #e0e0e0; background: #fff;
+    font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px; transition: all .15s; color: #555; }
+.pay-btn.active { border-color: var(--primary); background: #f0faf5; color: var(--primary); }
+.pay-btn:hover:not(.active) { border-color: #aaa; }
+
+/* QRIS Modal */
+.qris-wrap { text-align: center; padding: 8px 0; }
+.qris-code { width: 200px; height: 200px; margin: 12px auto; border-radius: 12px;
+    border: 2px solid #e9ecef; padding: 8px; background: #fff; }
+.qris-amount { font-size: 22px; font-weight: 700; color: var(--primary); margin: 8px 0 4px; }
+.qris-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
+    padding: 5px 14px; border-radius: 20px; margin-top: 8px; }
+.qris-status.waiting { background: #fff8e1; color: #f59e0b; }
+.qris-status.paid    { background: #e8f5e9; color: #16a34a; }
 
 /* Cart */
 .cart-header { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
@@ -74,30 +99,49 @@
             </div>
         </div>
 
-        <div class="cart-footer">
-            <div class="total-row"><span>Subtotal</span><span id="subtotalDisp">Rp 0</span></div>
-            <div class="total-row"><span>Diskon</span><span>Rp 0</span></div>
-            <div class="total-row grand"><span>Total</span><span id="totalDisp">Rp 0</span></div>
+       <div class="cart-footer">
+    <div class="total-row"><span>Subtotal</span><span id="subtotalDisp">Rp 0</span></div>
+    <div class="total-row"><span>Diskon</span><span>Rp 0</span></div>
+    <div class="total-row grand"><span>Total</span><span id="totalDisp">Rp 0</span></div>
 
-            <div class="mt-3 mb-2">
-                <label class="form-label" style="font-size:12px; color:#6c757d; margin-bottom:4px">Uang bayar</label>
-                <input type="number" id="paymentInput" class="form-control form-control-sm"
-                       placeholder="Masukkan nominal..." oninput="calcChange()" min="0">
-            </div>
+    {{-- Pilihan metode --}}
+    <div class="pay-method mt-3">
+        <button class="pay-btn active" id="btnMethodTunai" onclick="setPayMethod('tunai')">
+            <i class="bi bi-cash-coin"></i> Tunai
+        </button>
+        <button class="pay-btn" id="btnMethodQris" onclick="setPayMethod('qris')">
+            <i class="bi bi-qr-code-scan"></i> QRIS
+        </button>
+    </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-3 px-2 py-2 rounded"
-                 style="background:#f8f9fa; font-size:13px">
-                <span>Kembalian</span>
-                <span id="changeDisp" class="fw-semibold" style="color:var(--primary)">Rp 0</span>
-            </div>
-
-            <button class="btn btn-primary w-100 fw-semibold" id="btnBayar" onclick="processPayment()" disabled>
-                <i class="bi bi-check-circle me-1"></i> Bayar
-            </button>
-            <button class="btn btn-link w-100 text-muted mt-1" style="font-size:12px" onclick="clearCart()">
-                Kosongkan keranjang
-            </button>
+    {{-- Input uang tunai --}}
+    <div id="tunaiSection">
+        <label class="form-label" style="font-size:12px;color:#6c757d;margin-bottom:4px">Uang bayar</label>
+        <input type="number" id="paymentInput" class="form-control form-control-sm"
+               placeholder="Masukkan nominal..." oninput="calcChange()" min="0">
+        <div class="d-flex justify-content-between align-items-center mt-2 mb-3 px-2 py-2 rounded"
+             style="background:#f8f9fa;font-size:13px">
+            <span>Kembalian</span>
+            <span id="changeDisp" class="fw-semibold" style="color:var(--primary)">Rp 0</span>
         </div>
+    </div>
+
+    {{-- Info QRIS --}}
+    <div id="qrisSection" style="display:none">
+        <div class="d-flex justify-content-between align-items-center mb-3 px-2 py-2 rounded"
+             style="background:#f0faf5;font-size:13px">
+            <span>Scan QR untuk bayar</span>
+            <i class="bi bi-qr-code text-success fs-5"></i>
+        </div>
+    </div>
+
+    <button class="btn btn-primary w-100 fw-semibold" id="btnBayar" onclick="processPayment()" disabled>
+        <i class="bi bi-check-circle me-1"></i> Bayar
+    </button>
+    <button class="btn btn-link w-100 text-muted mt-1" style="font-size:12px" onclick="clearCart()">
+        Kosongkan keranjang
+    </button>
+</div>
     </div>
 </div>
 
@@ -119,32 +163,67 @@
         </div>
     </div>
 </div>
+
+{{-- Modal QRIS --}}
+<div class="modal fade" id="modalQris" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">Pembayaran QRIS</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="cancelQris()"></button>
+            </div>
+            <div class="modal-body qris-wrap">
+                <div style="font-size:12px;color:#9ca3af">Shop – Scan & Bayar</div>
+                <div class="qris-amount" id="qrisAmount">Rp 0</div>
+
+                {{-- QR Code (gunakan Google Charts API sebagai generator QR) --}}
+                <img id="qrisImg" class="qris-code" src="" alt="QR Code">
+
+                <div id="qrisStatusBadge" class="qris-status waiting">
+                    <span class="spinner-border spinner-border-sm"></span>
+                    Menunggu pembayaran...
+                </div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:10px">
+                    QR berlaku <span id="qrisCountdown" class="fw-semibold">05:00</span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 gap-2 flex-column">
+                {{-- Tombol simulasi (development) - hapus di production --}}
+                <button class="btn btn-success btn-sm w-100" onclick="simulatePaid()">
+                    <i class="bi bi-check-circle me-1"></i> Simulasi Bayar (Dev)
+                </button>
+                <button class="btn btn-outline-secondary btn-sm w-100" data-bs-dismiss="modal" onclick="cancelQris()">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
 const allProducts = @json($products);
-let cart = {}, activecat = 'Semua';
+let cart = {}, activecat = 'Semua', payMethod = 'tunai';
+let qrisTimer = null, qrisModal = null, qrisPaid = false;
 
 const fmt = n => 'Rp ' + parseInt(n).toLocaleString('id-ID');
 
-// ── Build kategori pills
+// ── Kategori
 function buildCats() {
     const cats = ['Semua', ...new Set(allProducts.map(p => p.category?.name ?? 'Lainnya'))];
     document.getElementById('catPills').innerHTML = cats.map(c =>
         `<button class="cat-pill ${c === activecat ? 'active' : ''}" onclick="setcat('${c}')">${c}</button>`
     ).join('');
 }
-
 function setcat(c) { activecat = c; buildCats(); renderProducts(); }
 
-// ── Render produk
+// ── Produk
 function renderProducts() {
     const q = document.getElementById('searchInput').value.toLowerCase();
     const filtered = allProducts.filter(p => {
         const matchCat = activecat === 'Semua' || (p.category?.name ?? 'Lainnya') === activecat;
-        const matchQ   = p.name.toLowerCase().includes(q);
-        return matchCat && matchQ;
+        return matchCat && p.name.toLowerCase().includes(q);
     });
     const grid = document.getElementById('productGrid');
     if (!filtered.length) {
@@ -152,20 +231,16 @@ function renderProducts() {
         return;
     }
     grid.innerHTML = filtered.map(p => {
-        const low = p.stock > 0 && p.stock <= 5;
-        const out = p.stock <= 0;
+        const low = p.stock > 0 && p.stock <= 5, out = p.stock <= 0;
         return `<div class="p-card ${out ? 'sold-out' : ''}" onclick="addToCart(${p.id})">
             <div class="p-emoji">📦</div>
             <div class="p-name">${p.name}</div>
             <div class="p-price">${fmt(p.price_sell)}</div>
             <div class="p-stock">Stok: ${p.stock}</div>
-            ${out ? '<span class="stock-pip badge-out">Habis</span>'
-                  : low ? '<span class="stock-pip badge-low">Tipis</span>'
-                        : ''}
+            ${out ? '<span class="stock-pip badge-out">Habis</span>' : low ? '<span class="stock-pip badge-low">Tipis</span>' : ''}
         </div>`;
     }).join('');
 }
-
 function filterProducts() { renderProducts(); }
 
 // ── Keranjang
@@ -180,7 +255,6 @@ function addToCart(id) {
     }
     renderCart(); showToast(p.name + ' ditambahkan');
 }
-
 function changeQty(id, d) {
     if (!cart[id]) return;
     const p = allProducts.find(x => x.id == id);
@@ -189,34 +263,22 @@ function changeQty(id, d) {
     else if (p && cart[id].qty > p.stock) { cart[id].qty = p.stock; showToast('Maks stok: ' + p.stock, 'warning'); }
     renderCart();
 }
-
 function renderCart() {
     const ids = Object.keys(cart);
-    const empty = document.getElementById('cartEmpty');
-    const body  = document.getElementById('cartBody');
-
-    // hapus item lama kecuali empty
+    const body = document.getElementById('cartBody');
     body.querySelectorAll('.cart-item').forEach(el => el.remove());
-
-    if (!ids.length) {
-        empty.style.display = 'flex';
-        setTotals(0); return;
-    }
+    const empty = document.getElementById('cartEmpty');
+    if (!ids.length) { empty.style.display = 'flex'; setTotals(0); return; }
     empty.style.display = 'none';
-
     let total = 0;
     ids.forEach(id => {
-        const i = cart[id];
-        const sub = i.price_sell * i.qty;
+        const i = cart[id], sub = i.price_sell * i.qty;
         total += sub;
         const div = document.createElement('div');
         div.className = 'cart-item';
         div.innerHTML = `
             <span class="ci-emoji">📦</span>
-            <div class="ci-info">
-                <div class="ci-name">${i.name}</div>
-                <div class="ci-price">${fmt(i.price_sell)}</div>
-            </div>
+            <div class="ci-info"><div class="ci-name">${i.name}</div><div class="ci-price">${fmt(i.price_sell)}</div></div>
             <div class="ci-qty">
                 <button class="qty-btn" onclick="changeQty(${id},-1)">−</button>
                 <span style="font-size:13px;font-weight:600;min-width:16px;text-align:center">${i.qty}</span>
@@ -227,35 +289,107 @@ function renderCart() {
     });
     setTotals(total);
 }
-
 function setTotals(total) {
     document.getElementById('subtotalDisp').textContent = fmt(total);
-    document.getElementById('totalDisp').textContent    = fmt(total);
+    document.getElementById('totalDisp').textContent = fmt(total);
     calcChange();
-    document.getElementById('btnBayar').disabled = (total === 0);
+    updateBayarBtn();
 }
-
 function calcChange() {
     const total = parseInt(document.getElementById('totalDisp').textContent.replace(/\D/g,'')) || 0;
-    const pay   = parseInt(document.getElementById('paymentInput').value) || 0;
-    const change = pay - total;
-    document.getElementById('changeDisp').textContent = fmt(change >= 0 ? change : 0);
-    document.getElementById('btnBayar').disabled = (pay < total || total === 0);
+    const pay = parseInt(document.getElementById('paymentInput').value) || 0;
+    document.getElementById('changeDisp').textContent = fmt(pay >= total ? pay - total : 0);
+    updateBayarBtn();
 }
-
+function updateBayarBtn() {
+    const total = parseInt(document.getElementById('totalDisp').textContent.replace(/\D/g,'')) || 0;
+    const pay = parseInt(document.getElementById('paymentInput')?.value) || 0;
+    const btn = document.getElementById('btnBayar');
+    if (payMethod === 'tunai') {
+        btn.disabled = pay < total || total === 0;
+    } else {
+        btn.disabled = total === 0;
+    }
+}
 function clearCart() {
     cart = {};
     document.getElementById('paymentInput').value = '';
     renderCart();
 }
 
-// ── Proses bayar
+// ── Metode Bayar
+function setPayMethod(m) {
+    payMethod = m;
+    document.getElementById('btnMethodTunai').classList.toggle('active', m === 'tunai');
+    document.getElementById('btnMethodQris').classList.toggle('active', m === 'qris');
+    document.getElementById('tunaiSection').style.display = m === 'tunai' ? 'block' : 'none';
+    document.getElementById('qrisSection').style.display = m === 'qris' ? 'block' : 'none';
+    updateBayarBtn();
+}
+
+// ── QRIS
+function openQrisModal(total) {
+    qrisPaid = false;
+    // Generate QR dari Google Charts (ganti URL ini dengan QRIS string merchant asli di production)
+    const qrisString = `00020101021126570011ID.DANA.WWW011893600915301048903902090104890390303UMI51440014ID.CO.QRIS.WWW0215ID10264980047810303UMI5204737253033605802ID5905agung6011Kota Bekasi610517158630473B6`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrisString)}`;
+    document.getElementById('qrisImg').src = qrUrl;
+    document.getElementById('qrisAmount').textContent = fmt(total);
+    document.getElementById('qrisStatusBadge').className = 'qris-status waiting';
+    document.getElementById('qrisStatusBadge').innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menunggu pembayaran...';
+
+    // Countdown 5 menit
+    let secs = 300;
+    clearInterval(qrisTimer);
+    qrisTimer = setInterval(() => {
+        secs--;
+        const m = String(Math.floor(secs/60)).padStart(2,'0');
+        const s = String(secs%60).padStart(2,'0');
+        document.getElementById('qrisCountdown').textContent = `${m}:${s}`;
+        if (secs <= 0) { clearInterval(qrisTimer); if (!qrisPaid) cancelQris(); }
+    }, 1000);
+
+    qrisModal = new bootstrap.Modal(document.getElementById('modalQris'));
+    qrisModal.show();
+}
+
+function cancelQris() {
+    clearInterval(qrisTimer);
+    qrisPaid = false;
+}
+
+// Simulasi pembayaran berhasil (hapus di production, ganti dengan webhook/polling real)
+function simulatePaid() {
+    qrisPaid = true;
+    clearInterval(qrisTimer);
+    document.getElementById('qrisStatusBadge').className = 'qris-status paid';
+    document.getElementById('qrisStatusBadge').innerHTML = '<i class="bi bi-check-circle-fill"></i> Pembayaran Diterima!';
+    setTimeout(() => {
+        qrisModal.hide();
+        submitTransaction(0, 0); // QRIS: kembalian 0, bayar = total
+    }, 1500);
+}
+
+// ── Proses Bayar
 async function processPayment() {
-    const total   = parseInt(document.getElementById('totalDisp').textContent.replace(/\D/g,'')) || 0;
+    const total = parseInt(document.getElementById('totalDisp').textContent.replace(/\D/g,'')) || 0;
+    if (total === 0) return;
+
+    if (payMethod === 'qris') {
+        openQrisModal(total);
+        return;
+    }
+
+    // Tunai
     const payment = parseInt(document.getElementById('paymentInput').value) || 0;
     if (payment < total) { showToast('Uang bayar kurang!', 'danger'); return; }
+    await submitTransaction(payment, payment - total);
+}
 
+async function submitTransaction(payment, kembalian) {
+    const total = parseInt(document.getElementById('totalDisp').textContent.replace(/\D/g,'')) || 0;
     const cartArr = Object.values(cart).map(i => ({ id: i.id, qty: i.qty }));
+    const actualPayment = payMethod === 'qris' ? total : payment;
 
     document.getElementById('btnBayar').disabled = true;
     document.getElementById('btnBayar').innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memproses...';
@@ -267,18 +401,18 @@ async function processPayment() {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
             },
-            body: JSON.stringify({ cart: cartArr, total_payment: payment }),
+            body: JSON.stringify({
+                cart: cartArr,
+                total_payment: actualPayment,
+                payment_method: payMethod,  // kirim ke backend
+            }),
         });
         const data = await res.json();
-
         if (data.success) {
-            showStruk(data.transaction, payment, payment - total);
+            showStruk(data.transaction, actualPayment, kembalian, payMethod);
             cart = {};
             document.getElementById('paymentInput').value = '';
             renderCart();
-            // Update invoice number
-            const now = new Date();
-            const d = now.toISOString().slice(0,10).replace(/-/g,'');
             document.getElementById('invoiceDisplay').textContent = data.invoice;
         } else {
             showToast(data.message, 'danger');
@@ -291,28 +425,33 @@ async function processPayment() {
     document.getElementById('btnBayar').innerHTML = '<i class="bi bi-check-circle me-1"></i> Bayar';
 }
 
-function showStruk(trx, bayar, kembali) {
+// ── Struk
+function showStruk(trx, bayar, kembali, method) {
+    const methodLabel = method === 'qris'
+        ? '<span class="badge bg-success">QRIS</span>'
+        : '<span class="badge bg-secondary">Tunai</span>';
     const items = trx.details.map(d =>
         `<tr><td>${d.product.name}</td><td class="text-end">${d.quantity}x</td><td class="text-end">Rp ${parseInt(d.subtotal).toLocaleString('id-ID')}</td></tr>`
     ).join('');
     document.getElementById('strukturContent').innerHTML = `
         <div class="text-center mb-3">
-            <div class="fw-bold" style="font-size:13px">SmartPOS</div>
+            <div class="fw-bold" style="font-size:13px">Shop</div>
             <div class="text-muted" style="font-size:11px">${trx.invoice_number}</div>
+            <div class="mt-1">${methodLabel}</div>
         </div>
         <table class="table table-sm mb-2" style="font-size:12px">
             <tbody>${items}</tbody>
             <tfoot>
                 <tr class="fw-bold"><td colspan="2">Total</td><td class="text-end">Rp ${parseInt(trx.total_price).toLocaleString('id-ID')}</td></tr>
                 <tr><td colspan="2">Bayar</td><td class="text-end">Rp ${parseInt(bayar).toLocaleString('id-ID')}</td></tr>
-                <tr style="color:var(--primary)"><td colspan="2">Kembali</td><td class="text-end">Rp ${parseInt(kembali).toLocaleString('id-ID')}</td></tr>
+                ${method !== 'qris' ? `<tr style="color:var(--primary)"><td colspan="2">Kembali</td><td class="text-end">Rp ${parseInt(kembali).toLocaleString('id-ID')}</td></tr>` : ''}
             </tfoot>
         </table>
         <div class="text-center text-muted" style="font-size:11px">Terima kasih!</div>`;
     new bootstrap.Modal(document.getElementById('modalStruk')).show();
 }
 
-// ── Toast notifikasi
+// ── Toast
 function showToast(msg, type = 'success') {
     const t = document.createElement('div');
     t.className = `alert alert-${type} position-fixed shadow`;

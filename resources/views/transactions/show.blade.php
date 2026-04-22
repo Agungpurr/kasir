@@ -29,7 +29,7 @@
             <div class="card-body p-4">
                 {{-- Header struk --}}
                 <div class="text-center mb-4">
-                    <div class="fw-bold fs-5">SmartPOS</div>
+                    <div class="fw-bold fs-5">Shop</div>
                     <div class="text-muted" style="font-size:12px">Kasir Digital</div>
                     <hr>
                     <div style="font-size:13px">

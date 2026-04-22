@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'SmartPOS') }} — @yield('title', 'Dashboard')</title>
+    <title>{{ config('app.name', 'Shop') }} — @yield('title', 'Dashboard')</title>
 
     {{-- Bootstrap 5 --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -151,7 +151,7 @@
 <nav id="sidebar">
     <div class="sidebar-brand">
         <div class="brand-icon"><i class="bi bi-bag-check"></i></div>
-        <span class="brand-name">SmartPOS</span>
+        <span class="brand-name">Shop</span>
     </div>
 
     <div class="sidebar-nav">

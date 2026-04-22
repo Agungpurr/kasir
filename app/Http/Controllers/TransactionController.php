@@ -36,6 +36,7 @@ class TransactionController extends Controller
             'cart.*.id'     => 'required|exists:products,id',
             'cart.*.qty'    => 'required|integer|min:1',
             'total_payment' => 'required|integer|min:0',
+            'payment_method' => 'required|in:tunai,qris',
         ]);
 
         $cart          = $request->cart;
@@ -69,6 +70,7 @@ class TransactionController extends Controller
                     'total_price'    => $totalPrice,
                     'total_payment'  => $request->total_payment,
                     'change'         => $request->total_payment - $totalPrice,
+                    'payment_method' => $request->payment_method,
                 ]);
 
                 // ── Simpan detail & kurangi stok ──
